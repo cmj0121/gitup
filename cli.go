@@ -16,5 +16,8 @@ func (ver version) BeforeApply() (err error) {
 // the command-line interface of GitUp
 type CLI struct {
 	// show the version info
-	Version version `short:"v" help:"Show version info"`
+	Version version `short:"V" help:"Show version info"`
+
+	// the log verbose level (error, warn, info, debug, trace)
+	Verbose int `short:"v" type:"counter" help:"the log verbose level"`
 }
