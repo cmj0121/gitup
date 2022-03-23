@@ -1,4 +1,4 @@
-SRC := $(shell find . -name *.go)
+SRC := $(shell find . -name '*.go')
 BIN := gitup
 
 .PHONY: all clean test build install upgrade help
@@ -31,6 +31,6 @@ help:			# show this message
 
 $(BIN): test
 
-$(BIN): $(SRC)
+$(BIN): cmd/$(BIN)/main.go $(SRC)
 	@go mod tidy
-	go build -o $@ $(SRC)
+	go build -o $@ $<
