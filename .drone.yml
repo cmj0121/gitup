@@ -11,3 +11,9 @@ steps:
       - pip install pre-commit
       - pre-commit install --install-hooks
       - pre-commit run --from-ref ${DRONE_COMMIT_BEFORE} --to-ref ${DRONE_COMMIT_SHA} --all-files
+  - name: golang:1.17
+    image: golang:1.17
+    commands:
+      - go get
+      - gofmt -d -s .
+      - go test -cover -failfast -timeout 2s ./...
