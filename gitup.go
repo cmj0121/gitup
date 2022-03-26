@@ -1,6 +1,7 @@
 package gitup
 
 import (
+	"io"
 	"os"
 
 	"github.com/alecthomas/kong"
@@ -9,12 +10,16 @@ import (
 
 // the GitUp instance
 type GitUp struct {
+	logger io.WriteCloser
+
 	*CLI
 }
 
 // create new GitUp instance
 func New() *GitUp {
 	return &GitUp{
+		// default log writer
+		logger: os.Stderr,
 		// create the CLI with default value
 		CLI: &CLI{},
 	}
@@ -29,7 +34,7 @@ func (gitup *GitUp) Run() {
 }
 
 // setup everything need before execute command
-func (gitup *GitUp) prologue() {
+func (gitup *GitUp) prologue() (err error) {
 	// setup the log sub-system
 	formatter := log.TextFormatter{
 		// can setup the color from environment
@@ -39,10 +44,23 @@ func (gitup *GitUp) prologue() {
 	}
 
 	log.SetFormatter(&formatter)
-	log.SetOutput(os.Stderr)
+	switch gitup.CLI.LogFile {
+	case "":
+		gitup.logger = os.Stderr
+	case "-":
+		gitup.logger = os.Stdout
+	default:
+		gitup.logger, err = os.OpenFile(gitup.LogFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	}
 
 	verbose := int(log.ErrorLevel) + gitup.CLI.Verbose
 	log.SetLevel(log.Level(verbose))
+	log.SetOutput(gitup.logger)
 
 	log.Trace("setup the log sub-system")
+	return
+}
+
+func (gitup *GitUp) epilogue() {
+	gitup.logger.Close()
 }

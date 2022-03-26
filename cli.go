@@ -20,4 +20,7 @@ type CLI struct {
 
 	// the log verbose level (error, warn, info, debug, trace)
 	Verbose int `short:"v" type:"counter" help:"the log verbose level"`
+
+	// the log file
+	LogFile string `type:"path" name:"log-file" help:"the log file destination (default: STDERR)"`
 }
