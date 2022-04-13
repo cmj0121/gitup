@@ -3,12 +3,17 @@ package blog
 import (
 	"bytes"
 	"io"
+	"os"
+
+	"github.com/cmj0121/gitup/config"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // the blog/post instance
 type Blog struct {
+	Path string `short:"p" arg:"" type:"existingfile" help:"the blog/markdown filepath"`
+
 	// the raw markdown context
 	md []byte
 }
@@ -29,5 +34,45 @@ func New(reader io.Reader) (blog *Blog, err error) {
 		md: buff.Bytes(),
 	}
 
+	return
+}
+
+// generate the blog via passwd arguments
+func (blog *Blog) Run(conf *config.Config) (err error) {
+	var reader io.Reader
+
+	if reader, err = os.Open(blog.Path); err != nil {
+		log.WithFields(log.Fields{
+			"path":  blog.Path,
+			"error": err,
+		}).Warn("cannot open blog file")
+		return
+	}
+
+	var buff bytes.Buffer
+	if _, err = io.Copy(&buff, reader); err != nil {
+		// cannot read and save to buffer
+		log.WithFields(log.Fields{
+			"path":  blog.Path,
+			"error": err,
+		}).Warn("cannot read blog")
+		return
+	}
+
+	blog.md = buff.Bytes()
+
+	var text []byte
+	if text, err = blog.Render(conf); err != nil {
+		// cannot render the blog to HTML
+		return
+	}
+
+	os.Stdout.Write(text)
+	return
+}
+
+// render the blog from markdown to HTML page
+func (blog *Blog) Render(conf *config.Config) (text []byte, err error) {
+	text = blog.md
 	return
 }
