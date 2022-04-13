@@ -22,6 +22,9 @@ type Clone struct {
 	// Auth with username/password
 	Username string `short:"U" help:"the username used for auth"`
 	Password string `short:"P" help:"the password used for auth"`
+
+	// remove the temporary folder
+	Purge bool `short:"p" negatable:"" default:"true" help:"purge the temporary repo cloned from remote"`
 }
 
 // clone the repository and generate the webpage
@@ -30,6 +33,16 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 	log.WithFields(log.Fields{
 		"path": tmpdir,
 	}).Info("the local folder to store the repo")
+
+	defer func() {
+		if clone.Purge {
+			if err := os.RemoveAll(tmpdir); err != nil {
+				log.WithFields(log.Fields{
+					"path": tmpdir,
+				}).Info("cannot purge temporary folder")
+			}
+		}
+	}()
 
 	if err = clone.Clone(tmpdir); err != nil {
 		log.WithFields(log.Fields{
