@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cmj0121/gitup/blog"
 	"github.com/cmj0121/gitup/config"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -25,12 +26,17 @@ type Clone struct {
 	// the remote repository URI
 	Repo *url.URL `arg:"" help:"the remote repository"`
 
+	// the final destinate folder of the webpage
+	Output string `short:"o" type:"path" default:"build" help:"the destinate folder of the generated webpage"`
+
 	// Auth with username/password
 	Username string `short:"U" help:"the username used for auth"`
 	Password string `short:"P" help:"the password used for auth"`
 
 	// remove the temporary folder
 	Purge bool `short:"p" negatable:"" default:"true" help:"purge the temporary repo cloned from remote"`
+
+	blogs []*blog.Blog
 }
 
 // clone the repository and generate the webpage
@@ -62,13 +68,15 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 	conf.Load(tmpdir)
 
 	for _, dir := range conf.Workdir {
-		if err = clone.Process(dir); err != nil {
+		if err = clone.Process(conf, dir); err != nil {
 			log.WithFields(log.Fields{
 				"path":  dir,
 				"error": err,
 			}).Error("generate blog fail")
 		}
 	}
+
+	err = clone.Generate()
 	return
 }
 
@@ -118,7 +126,7 @@ func (clone *Clone) TempDir() (folder string) {
 }
 
 // process and generate HTML from specified folder
-func (clone *Clone) Process(dir string) (err error) {
+func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 	working_space := clone.TempDir()
 	path := filepath.Clean(fmt.Sprintf("%v/%v", working_space, dir))
 
@@ -144,7 +152,17 @@ func (clone *Clone) Process(dir string) (err error) {
 			// the hidden file, skip
 		case strings.HasSuffix(name, SUFFIX_MD) || strings.HasSuffix(name, SUFFIX_MARKDOWN):
 			// parse the blog/markdown
-			if err = clone.process(name); err != nil {
+			md_path := fmt.Sprintf("%v/%v", path, name)
+			md_path = filepath.Clean(md_path)
+
+			if md_path[:len(path)] != path {
+				log.WithFields(log.Fields{
+					"path": md_path,
+				}).Info("invalid blog/markdown path")
+				continue
+			}
+
+			if err = clone.process(conf, md_path); err != nil {
 				// parse the blog/markdown fail
 				return
 			}
@@ -155,9 +173,67 @@ func (clone *Clone) Process(dir string) (err error) {
 }
 
 // parse the single blog/markdown by path
-func (clone *Clone) process(path string) (err error) {
+func (clone *Clone) process(conf *config.Config, path string) (err error) {
 	log.WithFields(log.Fields{
 		"path": path,
 	}).Trace("process the blog/markdown")
+
+	var file *os.File
+	if file, err = os.Open(path); err != nil {
+		log.WithFields(log.Fields{
+			"path":  path,
+			"error": err,
+		}).Info("cannot open blog/markdown")
+		return
+	}
+	defer file.Close()
+
+	var md_blog *blog.Blog
+	if md_blog, err = blog.New(file); err != nil {
+		log.WithFields(log.Fields{
+			"path":  path,
+			"error": err,
+		}).Info("cannot gen blog/markdown")
+		return
+	}
+	md_blog.Path = path
+
+	clone.blogs = append(clone.blogs, md_blog)
+	return
+}
+
+// generate the final webpage
+func (clone *Clone) Generate() (err error) {
+	if _, err := os.Stat(clone.Output); err == nil {
+		// always remove the description folder if exists
+		os.RemoveAll(clone.Output) //nolint
+	}
+
+	if err = os.MkdirAll(clone.Output, 0750); err != nil {
+		log.WithFields(log.Fields{
+			"path":  clone.Output,
+			"error": err,
+		}).Warn("cannot create description folder")
+		return
+	}
+
+	for _, blog := range clone.blogs {
+		basename := filepath.Base(filepath.Clean(blog.Path))
+		basename = basename[:len(basename)-len(filepath.Ext(basename))]
+
+		dest_path := fmt.Sprintf("%v/%v.htm", clone.Output, basename)
+		dest_path = filepath.Clean(dest_path)
+		if dest_path[:len(clone.Output)] != clone.Output {
+			err = fmt.Errorf("invalid desc path: %v", dest_path)
+			return
+		}
+
+		blog.Output = dest_path
+		if err = blog.Write(); err != nil {
+			// cannot write to description
+			return
+		}
+	}
+
 	return
 }
