@@ -17,8 +17,8 @@ import (
 type Blog struct {
 	Path string `short:"p" arg:"" type:"existingfile" help:"the blog/markdown filepath"`
 
-	// the raw markdown context
-	md []byte
+	md   []byte // the raw markdown context
+	html []byte // the raw HTML page
 }
 
 // create the blog from the open file
@@ -76,22 +76,36 @@ func (blog *Blog) Run(conf *config.Config) (err error) {
 
 // render the blog from markdown to HTML page
 func (blog *Blog) Render(conf *config.Config) (text []byte, err error) {
-	// the parser settings
-	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
-	extensions |= parser.Titleblock
-	extensions |= parser.Footnotes
-	extensions |= parser.SuperSubscript
-	extensions |= parser.Mmark
+	if _, err = blog.RenderHTML(); err != nil {
+		// cannot get the HTML page
+		return
+	}
+	text = blog.html
+	return
+}
 
-	parser := parser.NewWithExtensions(extensions)
+// render the raw HTML from markdown
+func (blog *Blog) RenderHTML() (text []byte, err error) {
+	if text = blog.html; len(text) == 0 {
+		// the parser settings
+		extensions := parser.CommonExtensions | parser.AutoHeadingIDs
+		extensions |= parser.Titleblock
+		extensions |= parser.Footnotes
+		extensions |= parser.SuperSubscript
+		extensions |= parser.Mmark
 
-	// the render settings
-	htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.TOC | html.LazyLoadImages
-	htmlFlags |= html.NofollowLinks | html.NoreferrerLinks | html.NoopenerLinks
+		parser := parser.NewWithExtensions(extensions)
 
-	opts := html.RendererOptions{Flags: htmlFlags}
-	render := html.NewRenderer(opts)
+		// the render settings
+		htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.TOC | html.LazyLoadImages
+		htmlFlags |= html.NofollowLinks | html.NoreferrerLinks | html.NoopenerLinks
 
-	text = markdown.ToHTML(blog.md, parser, render)
+		opts := html.RendererOptions{Flags: htmlFlags}
+		render := html.NewRenderer(opts)
+
+		text = markdown.ToHTML(blog.md, parser, render)
+		blog.html = text
+	}
+
 	return
 }

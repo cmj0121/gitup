@@ -2,16 +2,17 @@ package blog
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"testing/iotest"
 )
 
 var test_markdown = `
-	# The mock markdown post #
-	> this is the example blog
+# The mock markdown post #
+> this is the example blog
 
-	How to write and test blog
+How to write and test blog
 `
 
 func TestNew(t *testing.T) {
@@ -30,4 +31,28 @@ func TestNew(t *testing.T) {
 		// incorrect error response
 		t.Errorf("get unexpect error %v: %v", io_err, err)
 	}
+}
+
+func ExampleRender() {
+	reader := strings.NewReader(test_markdown)
+
+	blog, _ := New(reader)
+	text, _ := blog.RenderHTML()
+	os.Stdout.Write(text)
+	// Output:
+	// <nav>
+	//
+	// <ul>
+	// <li><a href="#the-mock-markdown-post">The mock markdown post</a></li>
+	// </ul>
+	//
+	// </nav>
+	//
+	// <h1 id="the-mock-markdown-post">The mock markdown post</h1>
+	//
+	// <blockquote>
+	// <p>this is the example blog</p>
+	// </blockquote>
+	//
+	// <p>How to write and test blog</p>
 }
