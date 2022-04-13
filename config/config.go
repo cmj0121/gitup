@@ -69,6 +69,7 @@ func (config *Config) Load(path string) {
 	}
 }
 
+// load the external config from io.Reader
 func (config *Config) LoadFromReader(reader io.Reader) {
 	var buff bytes.Buffer
 
@@ -85,4 +86,12 @@ func (config *Config) LoadFromReader(reader io.Reader) {
 		}).Warn("cannot read config as YAML")
 		return
 	}
+}
+
+// show the config as YAML format
+func (config Config) String() (conf string) {
+	if text, err := yaml.Marshal(config); err == nil {
+		conf = string(text)
+	}
+	return
 }

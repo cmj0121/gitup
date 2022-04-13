@@ -7,7 +7,6 @@ import (
 	"github.com/cmj0121/gitup/blog"
 	"github.com/cmj0121/gitup/clone"
 	"github.com/cmj0121/gitup/config"
-	"gopkg.in/yaml.v2"
 )
 
 type version bool
@@ -23,13 +22,7 @@ type conf_render struct{}
 
 // show the config as YAML format
 func (*conf_render) Run(conf *config.Config) (err error) {
-	var text []byte
-
-	if text, err = yaml.Marshal(conf); err == nil {
-		fmt.Println(string(text))
-		return
-	}
-
+	fmt.Println(conf)
 	return
 }
 
