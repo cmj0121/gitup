@@ -6,6 +6,9 @@ import (
 	"os"
 
 	"github.com/cmj0121/gitup/config"
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -73,6 +76,22 @@ func (blog *Blog) Run(conf *config.Config) (err error) {
 
 // render the blog from markdown to HTML page
 func (blog *Blog) Render(conf *config.Config) (text []byte, err error) {
-	text = blog.md
+	// the parser settings
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
+	extensions |= parser.Titleblock
+	extensions |= parser.Footnotes
+	extensions |= parser.SuperSubscript
+	extensions |= parser.Mmark
+
+	parser := parser.NewWithExtensions(extensions)
+
+	// the render settings
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.TOC | html.LazyLoadImages
+	htmlFlags |= html.NofollowLinks | html.NoreferrerLinks | html.NoopenerLinks
+
+	opts := html.RendererOptions{Flags: htmlFlags}
+	render := html.NewRenderer(opts)
+
+	text = markdown.ToHTML(blog.md, parser, render)
 	return
 }
