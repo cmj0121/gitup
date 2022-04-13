@@ -26,7 +26,12 @@ type Clone struct {
 
 // clone the repository and generate the webpage
 func (clone *Clone) Run(conf *config.Config) (err error) {
-	if err = clone.Clone(); err != nil {
+	tmpdir := clone.TempDir()
+	log.WithFields(log.Fields{
+		"path": tmpdir,
+	}).Info("the local folder to store the repo")
+
+	if err = clone.Clone(tmpdir); err != nil {
 		log.WithFields(log.Fields{
 			"repository": clone.Repo,
 			"error":      err,
@@ -34,11 +39,13 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 		return
 	}
 
+	// load the customized config from repo
+	conf.Load(tmpdir)
 	return
 }
 
 // clone the repo to local temporary folder
-func (clone *Clone) Clone() (err error) {
+func (clone *Clone) Clone(tmpdir string) (err error) {
 	var auth transport.AuthMethod
 	if auth, err = clone.auth_method(); err != nil {
 		// cannot get the auth method
@@ -50,12 +57,6 @@ func (clone *Clone) Clone() (err error) {
 		Auth: auth,
 		URL:  clone.Repo.String(),
 	}
-
-	tmpdir := clone.TempDir()
-	log.WithFields(log.Fields{
-		"path": tmpdir,
-	}).Info("the local folder to store the repo")
-
 	if _, err = git.PlainClone(tmpdir, false, &options); err != nil {
 		// cannot clone from remote to local
 		return
