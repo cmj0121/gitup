@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/cmj0121/gitup/blog"
+	"github.com/cmj0121/gitup/clone"
 	"github.com/cmj0121/gitup/config"
 	"gopkg.in/yaml.v2"
 )
@@ -46,5 +47,6 @@ type CLI struct {
 	// the sub-command and config settings
 	Settings string       `short:"s" name:"setting" type:"file" help:"the global settings of the gitup"`
 	Blog     *blog.Blog   `cmd:"" help:"generate the HTML by single blog/markdown"`
+	Clone    *clone.Clone `cmd:"" help:"clone the repository and generate HTML webpages"`
 	Config   *conf_render `name:"config" cmd:"" help:"dump the config settings"`
 }
