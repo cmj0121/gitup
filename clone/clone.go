@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cmj0121/gitup/config"
 	"github.com/go-git/go-git/v5"
@@ -12,6 +13,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	SUFFIX_MD       = ".md"
+	SUFFIX_MARKDOWN = ".markdown"
 )
 
 // the clone instance
@@ -54,6 +60,15 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 
 	// load the customized config from repo
 	conf.Load(tmpdir)
+
+	for _, dir := range conf.Workdir {
+		if err = clone.Process(dir); err != nil {
+			log.WithFields(log.Fields{
+				"path":  dir,
+				"error": err,
+			}).Error("generate blog fail")
+		}
+	}
 	return
 }
 
@@ -99,5 +114,50 @@ func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
 func (clone *Clone) TempDir() (folder string) {
 	folder = fmt.Sprintf("%v/gitup.%d", os.TempDir(), os.Getpid())
 	folder = filepath.Clean(folder)
+	return
+}
+
+// process and generate HTML from specified folder
+func (clone *Clone) Process(dir string) (err error) {
+	working_space := clone.TempDir()
+	path := filepath.Clean(fmt.Sprintf("%v/%v", working_space, dir))
+
+	if path[:len(working_space)] != working_space {
+		err = fmt.Errorf("invalid folder path: %v", path)
+		return
+	}
+
+	var files []os.DirEntry
+	if files, err = os.ReadDir(path); err != nil {
+		log.WithFields(log.Fields{
+			"path":  path,
+			"error": err,
+		}).Warn("cannot list blog")
+		return
+	}
+
+	for _, file := range files {
+		name := file.Name()
+
+		switch {
+		case name[0] == '.':
+			// the hidden file, skip
+		case strings.HasSuffix(name, SUFFIX_MD) || strings.HasSuffix(name, SUFFIX_MARKDOWN):
+			// parse the blog/markdown
+			if err = clone.process(name); err != nil {
+				// parse the blog/markdown fail
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// parse the single blog/markdown by path
+func (clone *Clone) process(path string) (err error) {
+	log.WithFields(log.Fields{
+		"path": path,
+	}).Trace("process the blog/markdown")
 	return
 }
