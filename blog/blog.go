@@ -15,7 +15,11 @@ import (
 
 // the blog/post instance
 type Blog struct {
+	// the source blog/markdown filepath
 	Path string `short:"p" arg:"" type:"existingfile" help:"the blog/markdown filepath"`
+
+	// the output file path
+	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
 
 	md   []byte // the raw markdown context
 	html []byte // the raw HTML page
@@ -63,14 +67,7 @@ func (blog *Blog) Run(conf *config.Config) (err error) {
 	}
 
 	blog.md = buff.Bytes()
-
-	var text []byte
-	if text, err = blog.Render(conf); err != nil {
-		// cannot render the blog to HTML
-		return
-	}
-
-	os.Stdout.Write(text)
+	err = blog.Write()
 	return
 }
 
@@ -107,5 +104,39 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 		blog.html = text
 	}
 
+	return
+}
+
+// write blog to destination
+func (blog *Blog) Write() (err error) {
+	var writer io.Writer
+
+	switch blog.Output {
+	case "", "-":
+		writer = os.Stdout
+	default:
+		var file *os.File
+		file, err = os.OpenFile(blog.Output, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0640)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"path":  blog.Output,
+				"error": err,
+			}).Warn("cannot write as HTML")
+			return
+		}
+		defer file.Close()
+		writer = file
+	}
+
+	var text []byte
+	if text, err = blog.RenderHTML(); err != nil {
+		log.WithFields(log.Fields{
+			"path":  blog.Output,
+			"error": err,
+		}).Warn("cannot write as HTML")
+		return
+	}
+
+	_, err = writer.Write(text)
 	return
 }
