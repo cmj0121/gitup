@@ -3,9 +3,11 @@ package blog
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 	"testing/iotest"
+	"time"
 )
 
 var test_markdown = `
@@ -55,4 +57,22 @@ func ExampleRender() {
 	// </blockquote>
 	//
 	// <p>How to write and test blog</p>
+}
+
+func TestBlogsSort(t *testing.T) {
+	x := Blog{
+		Path:       "x",
+		created_at: time.Now(),
+	}
+	y := Blog{
+		Path:       "y",
+		created_at: x.created_at.Add(time.Second),
+	}
+
+	blogs := Blogs{x, y}
+	sort.Sort(blogs)
+
+	if !(blogs[0].Path == "y" && blogs[1].Path == "x") {
+		t.Errorf("expect sort to %v: %v", Blogs{y, x}, blogs)
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"time"
 
 	"github.com/cmj0121/gitup/config"
 	"github.com/gomarkdown/markdown"
@@ -20,6 +21,8 @@ type Blog struct {
 
 	// the output file path
 	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
+
+	created_at time.Time
 
 	md   []byte // the raw markdown context
 	html []byte // the raw HTML page
@@ -139,4 +142,25 @@ func (blog *Blog) Write() (err error) {
 
 	_, err = writer.Write(text)
 	return
+}
+
+// the sort.Interface of []Blog
+type Blogs []Blog
+
+// the number of elements in the collection.
+func (blogs Blogs) Len() (size int) {
+	size = len(blogs)
+	return
+}
+
+// reports whether the element with index i must sort
+// before the element with index j.
+func (blogs Blogs) Less(i, j int) (less bool) {
+	less = blogs[i].created_at.UnixNano() > blogs[j].created_at.UnixNano()
+	return
+}
+
+// swaps the elements with indexes i and j.
+func (blogs Blogs) Swap(i, j int) {
+	blogs[i], blogs[j] = blogs[j], blogs[i]
 }
