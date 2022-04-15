@@ -20,6 +20,8 @@ var ConfigPath = []string{
 type Config struct {
 	// the storage folder of the blogs
 	Workdir []string
+
+	Render
 }
 
 // load the external config/configs and override the exists settings

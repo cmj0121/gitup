@@ -13,7 +13,7 @@ import (
 // the GitUp instance
 type GitUp struct {
 	logger io.WriteCloser
-	config.Config
+	*config.Config
 
 	*CLI
 }
@@ -23,6 +23,12 @@ func New() *GitUp {
 	return &GitUp{
 		// default log writer
 		logger: os.Stderr,
+		// default config
+		Config: &config.Config{
+			Render: config.Render{
+				Brand: Version(),
+			},
+		},
 		// create the CLI with default value
 		CLI: &CLI{},
 	}
@@ -40,7 +46,7 @@ func (gitup *GitUp) Run() {
 	defer gitup.epilogue()
 
 	// run the command
-	err := ctx.Run(&gitup.Config)
+	err := ctx.Run(gitup.Config)
 	ctx.FatalIfErrorf(err)
 }
 
