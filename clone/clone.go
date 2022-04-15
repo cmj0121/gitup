@@ -11,6 +11,7 @@ import (
 	"github.com/cmj0121/gitup/blog"
 	"github.com/cmj0121/gitup/config"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 
@@ -48,11 +49,12 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 
 	defer func() {
 		if clone.Purge {
-			os.RemoveAll(clone.tempdir) //nolint
+			os.RemoveAll(clone.tempdir) // nolint
 		}
 	}()
 
-	if err = clone.Clone(); err != nil {
+	var repo *git.Repository
+	if repo, err = clone.Clone(); err != nil {
 		log.WithFields(log.Fields{
 			"repository": clone.Repo,
 			"error":      err,
@@ -72,12 +74,12 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 		}
 	}
 
-	err = clone.Generate()
+	err = clone.Generate(repo)
 	return
 }
 
 // clone the repo to local temporary folder
-func (clone *Clone) Clone() (err error) {
+func (clone *Clone) Clone() (repo *git.Repository, err error) {
 	var auth transport.AuthMethod
 	if auth, err = clone.auth_method(); err != nil {
 		// cannot get the auth method
@@ -89,7 +91,7 @@ func (clone *Clone) Clone() (err error) {
 		Auth: auth,
 		URL:  clone.Repo.String(),
 	}
-	if _, err = git.PlainClone(clone.tempdir, false, &options); err != nil {
+	if repo, err = git.PlainClone(clone.tempdir, false, &options); err != nil {
 		// cannot clone from remote to local
 		return
 	}
@@ -144,7 +146,7 @@ func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 }
 
 // generate the final webpage
-func (clone *Clone) Generate() (err error) {
+func (clone *Clone) Generate(repo *git.Repository) (err error) {
 	if _, err := os.Stat(clone.Output); err == nil {
 		// always remove the description folder if exists
 		os.RemoveAll(clone.Output) // nolint
@@ -160,12 +162,18 @@ func (clone *Clone) Generate() (err error) {
 
 	// sort by the blog
 	sort.Sort(clone.blogs)
+	if err = clone.find_first_commit(repo, clone.blogs); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("cannot find the blogs first commit time")
+		return
+	}
 
 	for _, blog := range clone.blogs {
 		basename := filepath.Base(filepath.Clean(blog.Path))
 		basename = basename[:len(basename)-len(filepath.Ext(basename))]
 
-		dest_path := fmt.Sprintf("%v/%v.htm", clone.Output, basename)
+		dest_path := fmt.Sprintf("%v/%v-%v.htm", clone.Output, blog.UID(), basename)
 		dest_path = filepath.Clean(dest_path)
 		if dest_path[:len(clone.Output)] != clone.Output {
 			err = fmt.Errorf("invalid desc path: %v", dest_path)
@@ -223,8 +231,68 @@ func (clone *Clone) process(conf *config.Config, path string) (err error) {
 		}).Info("cannot gen blog/markdown")
 		return
 	}
-	md_blog.Path = path
+	// only record the related path of the blog/markdown
+	md_blog.Path = path[len(clone.tempdir)+1:]
+	if _, err = md_blog.RenderHTML(); err != nil {
+		// cannot render HTML from blog
+		return
+	}
 
 	clone.blogs = append(clone.blogs, md_blog)
+	return
+}
+
+// find the blog first commit date
+func (clone *Clone) find_first_commit(repo *git.Repository, blogs blog.Blogs) (err error) {
+	md_path_idx_map := map[string]int{}
+
+	for idx, blog := range blogs {
+		md_path_idx_map[blog.Path] = idx
+	}
+
+	options := git.LogOptions{
+		// only trace the file with the blog list
+		PathFilter: func(path string) (ok bool) {
+			_, ok = md_path_idx_map[path]
+			return
+		},
+	}
+
+	var commit_iter object.CommitIter
+	if commit_iter, err = repo.Log(&options); err != nil {
+		log.WithFields(log.Fields{
+			"repo":  repo,
+			"error": err,
+		}).Warn("cannot process git-log")
+
+		return
+	}
+
+	err = commit_iter.ForEach(func(commit *object.Commit) (err error) {
+		var stats object.FileStats
+
+		if stats, err = commit.Stats(); err != nil {
+			log.WithFields(log.Fields{
+				"commit": commit,
+				"error":  err,
+			}).Warn("cannot get commit status")
+			return
+		}
+
+		for _, st := range stats {
+			idx, ok := md_path_idx_map[st.Name]
+			if !ok {
+				log.WithFields(log.Fields{
+					"commit": commit,
+					"file":   st.Name,
+				}).Warn("find file in commit but not in blog list")
+				continue
+			}
+
+			blogs[idx].CreatedAt = commit.Author.When
+		}
+		return
+	})
+
 	return
 }

@@ -2,6 +2,7 @@ package blog
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -141,6 +142,13 @@ func (blog *Blog) Write() (err error) {
 	}
 
 	_, err = writer.Write(text)
+	return
+}
+
+// the unique ID of the blog
+func (blog Blog) UID() (uid string) {
+	// the unique ID is the created at as micro seconds based on UTC+0
+	uid = fmt.Sprintf("%v", blog.CreatedAt.UTC().UnixMicro()/1000000)
 	return
 }
 
