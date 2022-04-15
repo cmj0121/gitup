@@ -22,7 +22,7 @@ type Blog struct {
 	// the output file path
 	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
 
-	created_at time.Time
+	CreatedAt time.Time
 
 	md   []byte // the raw markdown context
 	html []byte // the raw HTML page
@@ -156,7 +156,7 @@ func (blogs Blogs) Len() (size int) {
 // reports whether the element with index i must sort
 // before the element with index j.
 func (blogs Blogs) Less(i, j int) (less bool) {
-	less = blogs[i].created_at.UnixNano() > blogs[j].created_at.UnixNano()
+	less = blogs[i].CreatedAt.UnixNano() > blogs[j].CreatedAt.UnixNano()
 	return
 }
 
