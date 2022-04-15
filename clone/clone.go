@@ -41,7 +41,7 @@ type Clone struct {
 
 // clone the repository and generate the webpage
 func (clone *Clone) Run(conf *config.Config) (err error) {
-	tmpdir := clone.TempDir()
+	tmpdir := clone.tempDir()
 	log.WithFields(log.Fields{
 		"path": tmpdir,
 	}).Info("the local folder to store the repo")
@@ -101,33 +101,9 @@ func (clone *Clone) Clone(tmpdir string) (err error) {
 	return
 }
 
-// get the auth method from the provided URI
-func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
-	switch scheme := clone.Repo.Scheme; scheme {
-	case "http", "https":
-		// generatl HTTP/HTTPS repository
-		auth = &http.BasicAuth{
-			Username: clone.Username,
-			Password: clone.Password,
-		}
-	default:
-		err = fmt.Errorf("not support scheme: %v", scheme)
-		return
-	}
-
-	return
-}
-
-// the temporary folder
-func (clone *Clone) TempDir() (folder string) {
-	folder = fmt.Sprintf("%v/gitup.%d", os.TempDir(), os.Getpid())
-	folder = filepath.Clean(folder)
-	return
-}
-
 // process and generate HTML from specified folder
 func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
-	working_space := clone.TempDir()
+	working_space := clone.tempDir()
 	path := filepath.Clean(fmt.Sprintf("%v/%v", working_space, dir))
 
 	if path[:len(working_space)] != working_space {
@@ -172,36 +148,6 @@ func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 	return
 }
 
-// parse the single blog/markdown by path
-func (clone *Clone) process(conf *config.Config, path string) (err error) {
-	log.WithFields(log.Fields{
-		"path": path,
-	}).Trace("process the blog/markdown")
-
-	var file *os.File
-	if file, err = os.Open(path); err != nil {
-		log.WithFields(log.Fields{
-			"path":  path,
-			"error": err,
-		}).Info("cannot open blog/markdown")
-		return
-	}
-	defer file.Close()
-
-	var md_blog *blog.Blog
-	if md_blog, err = blog.New(file); err != nil {
-		log.WithFields(log.Fields{
-			"path":  path,
-			"error": err,
-		}).Info("cannot gen blog/markdown")
-		return
-	}
-	md_blog.Path = path
-
-	clone.blogs = append(clone.blogs, md_blog)
-	return
-}
-
 // generate the final webpage
 func (clone *Clone) Generate() (err error) {
 	if _, err := os.Stat(clone.Output); err == nil {
@@ -235,5 +181,59 @@ func (clone *Clone) Generate() (err error) {
 		}
 	}
 
+	return
+}
+
+// get the auth method from the provided URI
+func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
+	switch scheme := clone.Repo.Scheme; scheme {
+	case "http", "https":
+		// generatl HTTP/HTTPS repository
+		auth = &http.BasicAuth{
+			Username: clone.Username,
+			Password: clone.Password,
+		}
+	default:
+		err = fmt.Errorf("not support scheme: %v", scheme)
+		return
+	}
+
+	return
+}
+
+// the temporary folder
+func (clone *Clone) tempDir() (folder string) {
+	folder = fmt.Sprintf("%v/gitup.%d", os.TempDir(), os.Getpid())
+	folder = filepath.Clean(folder)
+	return
+}
+
+// parse the single blog/markdown by path
+func (clone *Clone) process(conf *config.Config, path string) (err error) {
+	log.WithFields(log.Fields{
+		"path": path,
+	}).Trace("process the blog/markdown")
+
+	var file *os.File
+	if file, err = os.Open(path); err != nil {
+		log.WithFields(log.Fields{
+			"path":  path,
+			"error": err,
+		}).Info("cannot open blog/markdown")
+		return
+	}
+	defer file.Close()
+
+	var md_blog *blog.Blog
+	if md_blog, err = blog.New(file); err != nil {
+		log.WithFields(log.Fields{
+			"path":  path,
+			"error": err,
+		}).Info("cannot gen blog/markdown")
+		return
+	}
+	md_blog.Path = path
+
+	clone.blogs = append(clone.blogs, md_blog)
 	return
 }
