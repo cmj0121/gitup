@@ -12,7 +12,7 @@ import (
 type version bool
 
 func (ver version) BeforeApply() (err error) {
-	fmt.Printf("%v (v%d.%d.%d)\n", PROJ_NAME, MAJOR, MINOR, MACRO)
+	os.Stdout.WriteString(Version())
 	os.Exit(0)
 	return
 }
