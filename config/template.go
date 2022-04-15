@@ -1,8 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
+	"strings"
 
 	_ "embed"
 	log "github.com/sirupsen/logrus"
@@ -41,6 +43,18 @@ func (render Render) Template() (tmpl *template.Template, err error) {
 	tmpl, err = template.New(KEY_BLOG_TMPL).Funcs(template.FuncMap{
 		"safe": func(text string) template.HTML {
 			return template.HTML(text)
+		},
+		"indent": func(num_indent int, text interface{}) template.HTML {
+			indent := "\n" + strings.Repeat(" ", num_indent)
+
+			switch text := text.(type) {
+			case string:
+				return template.HTML(strings.Replace(text, "\n", indent, -1))
+			case template.HTML:
+				return template.HTML(strings.Replace(string(text), "\n", indent, -1))
+			default:
+				return template.HTML(strings.Replace(fmt.Sprintf("%v", text), "\n", indent, -1))
+			}
 		},
 	}).Parse(text)
 	return
