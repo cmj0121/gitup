@@ -43,7 +43,7 @@ type Clone struct {
 }
 
 // clone the repository and generate the webpage
-func (clone *Clone) Run(conf *config.Config) (err error) {
+func (clone *Clone) Run(config *config.Config) (err error) {
 	clone.tempdir = fmt.Sprintf("%v/gitup.%d", os.TempDir(), os.Getpid())
 	clone.tempdir = filepath.Clean(clone.tempdir)
 
@@ -63,10 +63,10 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 	}
 
 	// load the customized config from repo
-	conf.Load(clone.tempdir)
+	config.Load(clone.tempdir)
 
-	for _, dir := range conf.Workdir {
-		if err = clone.Process(conf, dir); err != nil {
+	for _, dir := range config.Workdir {
+		if err = clone.Process(config, dir); err != nil {
 			log.WithFields(log.Fields{
 				"path":  dir,
 				"error": err,
@@ -74,7 +74,7 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 		}
 	}
 
-	err = clone.Generate(conf, repo)
+	err = clone.Generate(config, repo)
 	return
 }
 
@@ -100,7 +100,7 @@ func (clone *Clone) Clone() (repo *git.Repository, err error) {
 }
 
 // process and generate HTML from specified folder
-func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
+func (clone *Clone) Process(config *config.Config, dir string) (err error) {
 	path := filepath.Clean(fmt.Sprintf("%v/%v", clone.tempdir, dir))
 
 	if path[:len(clone.tempdir)] != clone.tempdir {
@@ -135,7 +135,7 @@ func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 				continue
 			}
 
-			if err = clone.process(conf, md_path); err != nil {
+			if err = clone.process(config, md_path); err != nil {
 				// parse the blog/markdown fail
 				return
 			}
@@ -146,7 +146,7 @@ func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 }
 
 // generate the final webpage
-func (clone *Clone) Generate(conf *config.Config, repo *git.Repository) (err error) {
+func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err error) {
 	if _, err := os.Stat(clone.Output); err == nil {
 		// always remove the description folder if exists
 		os.RemoveAll(clone.Output) // nolint
@@ -181,7 +181,7 @@ func (clone *Clone) Generate(conf *config.Config, repo *git.Repository) (err err
 		}
 
 		blog.Output = dest_path
-		if err = blog.Write(conf); err != nil {
+		if err = blog.Write(config); err != nil {
 			// cannot write to description
 			return
 		}
@@ -208,7 +208,7 @@ func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
 }
 
 // parse the single blog/markdown by path
-func (clone *Clone) process(conf *config.Config, path string) (err error) {
+func (clone *Clone) process(config *config.Config, path string) (err error) {
 	log.WithFields(log.Fields{
 		"path": path,
 	}).Trace("process the blog/markdown")

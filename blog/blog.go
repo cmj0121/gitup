@@ -50,7 +50,7 @@ func New(reader io.Reader) (blog *Blog, err error) {
 }
 
 // generate the blog via passwd arguments
-func (blog *Blog) Run(conf *config.Config) (err error) {
+func (blog *Blog) Run(config *config.Config) (err error) {
 	var reader io.Reader
 
 	if reader, err = os.Open(blog.Path); err != nil {
@@ -72,12 +72,12 @@ func (blog *Blog) Run(conf *config.Config) (err error) {
 	}
 
 	blog.md = buff.Bytes()
-	err = blog.Write(conf)
+	err = blog.Write(config)
 	return
 }
 
 // render the blog from markdown to HTML page
-func (blog *Blog) Render(conf *config.Config) (text []byte, err error) {
+func (blog *Blog) Render(config *config.Config) (text []byte, err error) {
 	if _, err = blog.RenderHTML(); err != nil {
 		// cannot get the HTML page
 		return
@@ -114,7 +114,7 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 }
 
 // write blog to destination
-func (blog *Blog) Write(conf *config.Config) (err error) {
+func (blog *Blog) Write(config *config.Config) (err error) {
 	var writer io.Writer
 
 	switch blog.Output {
@@ -144,7 +144,7 @@ func (blog *Blog) Write(conf *config.Config) (err error) {
 	}
 
 	var tmpl *template.Template
-	if tmpl, err = conf.Template(); err != nil {
+	if tmpl, err = config.Template(); err != nil {
 		// cannot get the template from the config
 		return
 	}
