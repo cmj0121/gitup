@@ -1,6 +1,9 @@
 SRC := $(shell find . -name '*.go')
 BIN := gitup
 
+SASS := $(wildcard config/assets/*.sass)
+CSS  := $(subst .sass,.css,$(SASS))
+
 .PHONY: all clean test build install upgrade help
 
 all: 			# default action
@@ -31,6 +34,9 @@ help:			# show this message
 
 $(BIN): test
 
-$(BIN): cmd/$(BIN)/main.go $(SRC)
+$(BIN): cmd/$(BIN)/main.go $(SRC) $(CSS)
 	@go mod tidy
 	go build -o $@ $<
+
+%.css: %.sass
+	sass --no-source-map $< $@

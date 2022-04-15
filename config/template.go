@@ -80,3 +80,24 @@ func (render Render) html() (text string, err error) {
 
 	return
 }
+
+// get the CSS style
+func (render Render) CSS() (css template.CSS) {
+	switch render.Style {
+	case "":
+		css = template.CSS(TMPL_STYLE)
+	default:
+		data, err := ioutil.ReadFile(render.Html)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"path":  render.Html,
+				"error": err,
+			}).Warn("cannot read HTMP template")
+			return
+		}
+
+		css = template.CSS(data)
+	}
+
+	return
+}

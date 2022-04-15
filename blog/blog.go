@@ -149,9 +149,11 @@ func (blog *Blog) Write(config *config.Config) (err error) {
 		return
 	}
 	err = tmpl.Execute(writer, struct {
-		Post string
+		Post  string
+		Style template.CSS
 	}{
-		Post: string(text),
+		Post:  string(text),
+		Style: config.CSS(),
 	})
 
 	return
