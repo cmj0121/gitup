@@ -74,7 +74,7 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 		}
 	}
 
-	err = clone.Generate(repo)
+	err = clone.Generate(conf, repo)
 	return
 }
 
@@ -146,7 +146,7 @@ func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 }
 
 // generate the final webpage
-func (clone *Clone) Generate(repo *git.Repository) (err error) {
+func (clone *Clone) Generate(conf *config.Config, repo *git.Repository) (err error) {
 	if _, err := os.Stat(clone.Output); err == nil {
 		// always remove the description folder if exists
 		os.RemoveAll(clone.Output) // nolint
@@ -181,7 +181,7 @@ func (clone *Clone) Generate(repo *git.Repository) (err error) {
 		}
 
 		blog.Output = dest_path
-		if err = blog.Write(); err != nil {
+		if err = blog.Write(conf); err != nil {
 			// cannot write to description
 			return
 		}

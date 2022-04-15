@@ -3,6 +3,7 @@ package blog
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"os"
 	"time"
@@ -71,7 +72,7 @@ func (blog *Blog) Run(conf *config.Config) (err error) {
 	}
 
 	blog.md = buff.Bytes()
-	err = blog.Write()
+	err = blog.Write(conf)
 	return
 }
 
@@ -81,6 +82,7 @@ func (blog *Blog) Render(conf *config.Config) (text []byte, err error) {
 		// cannot get the HTML page
 		return
 	}
+
 	text = blog.html
 	return
 }
@@ -112,7 +114,7 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 }
 
 // write blog to destination
-func (blog *Blog) Write() (err error) {
+func (blog *Blog) Write(conf *config.Config) (err error) {
 	var writer io.Writer
 
 	switch blog.Output {
@@ -141,7 +143,17 @@ func (blog *Blog) Write() (err error) {
 		return
 	}
 
-	_, err = writer.Write(text)
+	var tmpl *template.Template
+	if tmpl, err = conf.Template(); err != nil {
+		// cannot get the template from the config
+		return
+	}
+	err = tmpl.Execute(writer, struct {
+		Post string
+	}{
+		Post: string(text),
+	})
+
 	return
 }
 

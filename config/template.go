@@ -38,7 +38,11 @@ func (render Render) Template() (tmpl *template.Template, err error) {
 		return
 	}
 
-	tmpl, err = template.New(KEY_BLOG_TMPL).Parse(text)
+	tmpl, err = template.New(KEY_BLOG_TMPL).Funcs(template.FuncMap{
+		"safe": func(text string) template.HTML {
+			return template.HTML(text)
+		},
+	}).Parse(text)
 	return
 }
 
