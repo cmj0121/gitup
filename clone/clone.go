@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/cmj0121/gitup/blog"
@@ -36,7 +37,7 @@ type Clone struct {
 	// remove the temporary folder
 	Purge bool `short:"p" negatable:"" default:"true" help:"purge the temporary repo cloned from remote"`
 
-	blogs []*blog.Blog
+	blogs blog.Blogs
 }
 
 // clone the repository and generate the webpage
@@ -162,6 +163,9 @@ func (clone *Clone) Generate() (err error) {
 		}).Warn("cannot create description folder")
 		return
 	}
+
+	// sort by the blog
+	sort.Sort(clone.blogs)
 
 	for _, blog := range clone.blogs {
 		basename := filepath.Base(filepath.Clean(blog.Path))

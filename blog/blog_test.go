@@ -60,11 +60,11 @@ func ExampleRender() {
 }
 
 func TestBlogsSort(t *testing.T) {
-	x := Blog{
+	x := &Blog{
 		Path:       "x",
 		created_at: time.Now(),
 	}
-	y := Blog{
+	y := &Blog{
 		Path:       "y",
 		created_at: x.created_at.Add(time.Second),
 	}

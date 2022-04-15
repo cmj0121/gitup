@@ -145,7 +145,7 @@ func (blog *Blog) Write() (err error) {
 }
 
 // the sort.Interface of []Blog
-type Blogs []Blog
+type Blogs []*Blog
 
 // the number of elements in the collection.
 func (blogs Blogs) Len() (size int) {
