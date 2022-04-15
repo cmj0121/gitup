@@ -37,27 +37,22 @@ type Clone struct {
 	// remove the temporary folder
 	Purge bool `short:"p" negatable:"" default:"true" help:"purge the temporary repo cloned from remote"`
 
-	blogs blog.Blogs
+	tempdir string     // the working space
+	blogs   blog.Blogs // the processed blog instances
 }
 
 // clone the repository and generate the webpage
 func (clone *Clone) Run(conf *config.Config) (err error) {
-	tmpdir := clone.tempDir()
-	log.WithFields(log.Fields{
-		"path": tmpdir,
-	}).Info("the local folder to store the repo")
+	clone.tempdir = fmt.Sprintf("%v/gitup.%d", os.TempDir(), os.Getpid())
+	clone.tempdir = filepath.Clean(clone.tempdir)
 
 	defer func() {
 		if clone.Purge {
-			if err := os.RemoveAll(tmpdir); err != nil {
-				log.WithFields(log.Fields{
-					"path": tmpdir,
-				}).Info("cannot purge temporary folder")
-			}
+			os.RemoveAll(clone.tempdir) //nolint
 		}
 	}()
 
-	if err = clone.Clone(tmpdir); err != nil {
+	if err = clone.Clone(); err != nil {
 		log.WithFields(log.Fields{
 			"repository": clone.Repo,
 			"error":      err,
@@ -66,7 +61,7 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 	}
 
 	// load the customized config from repo
-	conf.Load(tmpdir)
+	conf.Load(clone.tempdir)
 
 	for _, dir := range conf.Workdir {
 		if err = clone.Process(conf, dir); err != nil {
@@ -82,7 +77,7 @@ func (clone *Clone) Run(conf *config.Config) (err error) {
 }
 
 // clone the repo to local temporary folder
-func (clone *Clone) Clone(tmpdir string) (err error) {
+func (clone *Clone) Clone() (err error) {
 	var auth transport.AuthMethod
 	if auth, err = clone.auth_method(); err != nil {
 		// cannot get the auth method
@@ -94,7 +89,7 @@ func (clone *Clone) Clone(tmpdir string) (err error) {
 		Auth: auth,
 		URL:  clone.Repo.String(),
 	}
-	if _, err = git.PlainClone(tmpdir, false, &options); err != nil {
+	if _, err = git.PlainClone(clone.tempdir, false, &options); err != nil {
 		// cannot clone from remote to local
 		return
 	}
@@ -104,10 +99,9 @@ func (clone *Clone) Clone(tmpdir string) (err error) {
 
 // process and generate HTML from specified folder
 func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
-	working_space := clone.tempDir()
-	path := filepath.Clean(fmt.Sprintf("%v/%v", working_space, dir))
+	path := filepath.Clean(fmt.Sprintf("%v/%v", clone.tempdir, dir))
 
-	if path[:len(working_space)] != working_space {
+	if path[:len(clone.tempdir)] != clone.tempdir {
 		err = fmt.Errorf("invalid folder path: %v", path)
 		return
 	}
@@ -153,7 +147,7 @@ func (clone *Clone) Process(conf *config.Config, dir string) (err error) {
 func (clone *Clone) Generate() (err error) {
 	if _, err := os.Stat(clone.Output); err == nil {
 		// always remove the description folder if exists
-		os.RemoveAll(clone.Output) //nolint
+		os.RemoveAll(clone.Output) // nolint
 	}
 
 	if err = os.MkdirAll(clone.Output, 0750); err != nil {
@@ -202,13 +196,6 @@ func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
 		return
 	}
 
-	return
-}
-
-// the temporary folder
-func (clone *Clone) tempDir() (folder string) {
-	folder = fmt.Sprintf("%v/gitup.%d", os.TempDir(), os.Getpid())
-	folder = filepath.Clean(folder)
 	return
 }
 
