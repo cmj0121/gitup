@@ -56,6 +56,16 @@ func (render Render) Template() (tmpl *template.Template, err error) {
 				return template.HTML(strings.Replace(fmt.Sprintf("%v", text), "\n", indent, -1))
 			}
 		},
+		"css": func(text interface{}) template.CSS {
+			switch text := text.(type) {
+			case string:
+				return template.CSS(text)
+			case template.HTML:
+				return template.CSS(text)
+			default:
+				return template.CSS(fmt.Sprintf("%v", text))
+			}
+		},
 	}).Parse(text)
 	return
 }
