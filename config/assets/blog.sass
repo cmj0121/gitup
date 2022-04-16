@@ -18,54 +18,57 @@ body
     background : $bg_color
     opacity    : .85
 
-.blog
-  padding   : 1rem
+.box
+  padding   : 2rem
   max-width : 1200px
-  margin    : 4rem auto
+  margin    : 1rem auto
 
-  border        : 1px solid var(--bs-light)
-  border-radius : 17px
-  box-shadow    : 22px 14px 32px var(--bs-gray-900)
+  .blog
+    padding   : 1rem
 
-  ul
-    list-style-type : none
-    counter-reset   : item
+    border        : 1px solid var(--bs-light)
+    border-radius : 17px
+    box-shadow    : 22px 14px 32px var(--bs-gray-900)
 
-    > li::before
-      content : counters(item, '.') ''
-      color   : var(--bs-dark)
-      list-style-type   : decimal
-      counter-increment : item
-      margin-right      : 0.5rem
+    ul
+      list-style-type : none
+      counter-reset   : item
 
-  pre > code
-    padding       : .5rem
-    display       : block
-    background    : var(--bs-gray-700)
-    color         : $code_green
-    overflow      : auto
-    border-radius : 1rem
+      > li::before
+        content : counters(item, '.') ''
+        color   : var(--bs-dark)
+        list-style-type   : decimal
+        counter-increment : item
+        margin-right      : 0.5rem
 
-  nav
-    width          : 65%
-    padding-top    : 1rem
-    padding-bottom : 0.2rem
-    background     : var(--bs-gray-500)
-    margin-bottom  : 1rem
-    border-radius  : 0.4rem
+    pre > code
+      padding       : .5rem
+      display       : block
+      background    : var(--bs-gray-700)
+      color         : $code_green
+      overflow      : auto
+      border-radius : 1rem
 
-    > ::before
-      content : 'Contents'
-      color   : var(--bs-dark)
+    nav
+      width          : 65%
+      padding-top    : 1rem
+      padding-bottom : 0.2rem
+      background     : var(--bs-gray-500)
+      margin-bottom  : 1rem
+      border-radius  : 0.4rem
 
-      font-size     : 150%
-      display       : grid
-      place-items   : center
-      margin-bottom : 1rem
+      > ::before
+        content : 'Contents'
+        color   : var(--bs-dark)
 
-    a
-      color : var(--bs-dark)
+        font-size     : 150%
+        display       : grid
+        place-items   : center
+        margin-bottom : 1rem
 
-  h1
-    border-bottom  : 1px solid var(--bs-light)
-    padding-bottom : 3px
+      a
+        color : var(--bs-dark)
+
+    h1
+      border-bottom  : 1px solid var(--bs-light)
+      padding-bottom : 3px

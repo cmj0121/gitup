@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"io"
 	"os"
+	"regexp"
+	"sort"
 	"time"
 
 	"github.com/cmj0121/gitup/config"
@@ -23,7 +25,10 @@ type Blog struct {
 
 	// the output file path
 	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
+	// the customized title
+	Title string `short:"t" help:"the customized title"`
 
+	// the blogs timestamp
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
@@ -73,7 +78,7 @@ func (blog *Blog) Run(config *config.Config) (err error) {
 	}
 
 	blog.md = buff.Bytes()
-	err = blog.Write(config)
+	err = blog.Write(config, nil)
 	return
 }
 
@@ -109,13 +114,31 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 
 		text = markdown.ToHTML(blog.md, parser, render)
 		blog.html = text
+
+		// find the post title
+		if blog.Title == "" {
+			RE_TITLE := regexp.MustCompile(`<h1 id=.*?>([\s\S]+?)</h1>`)
+
+			if text := blog.html; RE_TITLE.Match(text) {
+				// find the title
+				for _, matched := range RE_TITLE.FindAllSubmatch(text, -1) {
+					if blog.Title = string(matched[1]); blog.Title != "" {
+						// found the first <h1> tag
+						log.WithFields(log.Fields{
+							"title": blog.Title,
+						}).Warn("PWN")
+						break
+					}
+				}
+			}
+		}
 	}
 
 	return
 }
 
 // write blog to destination
-func (blog *Blog) Write(config *config.Config) (err error) {
+func (blog *Blog) Write(config *config.Config, summary Summary) (err error) {
 	var writer io.Writer
 
 	switch blog.Output {
@@ -150,14 +173,15 @@ func (blog *Blog) Write(config *config.Config) (err error) {
 	}
 	err = tmpl.Execute(writer, struct {
 		*Blog
-
+		Summary
 		Style template.CSS
 
 		// the extra meta
 		UTCNow time.Time
 	}{
-		Blog:  blog,
-		Style: config.CSS(),
+		Blog:    blog,
+		Summary: summary,
+		Style:   config.CSS(),
 
 		UTCNow: time.Now().UTC(),
 	})
@@ -197,4 +221,38 @@ func (blogs Blogs) Less(i, j int) (less bool) {
 // swaps the elements with indexes i and j.
 func (blogs Blogs) Swap(i, j int) {
 	blogs[i], blogs[j] = blogs[j], blogs[i]
+}
+
+// the summary via the year
+func (blogs Blogs) SummaryByYear() (summary Summary) {
+	years_category := map[string]Blogs{}
+
+	for _, blog := range blogs {
+		year := fmt.Sprintf("%v", blog.CreatedAt.UTC().Year())
+
+		switch _, ok := years_category[year]; ok {
+		case true:
+			years_category[year] = append(years_category[year], blog)
+		case false:
+			years_category[year] = Blogs{blog}
+		}
+	}
+
+	years := []string{}
+	for year := range years_category {
+		years = append(years, year)
+	}
+
+	sort.Sort(sort.Reverse(sort.StringSlice(years)))
+
+	for _, year := range years {
+		sort.Sort(years_category[year])
+
+		summary = append(summary, Category{
+			Key:   year,
+			Blogs: years_category[year],
+		})
+	}
+
+	return
 }

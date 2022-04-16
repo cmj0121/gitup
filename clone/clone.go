@@ -169,6 +169,7 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		return
 	}
 
+	summary := clone.blogs.SummaryByYear()
 	for _, blog := range clone.blogs {
 		basename := filepath.Base(filepath.Clean(blog.Path))
 		basename = basename[:len(basename)-len(filepath.Ext(basename))]
@@ -181,7 +182,10 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		}
 
 		blog.Output = dest_path
-		if err = blog.Write(config); err != nil {
+	}
+
+	for _, blog := range clone.blogs {
+		if err = blog.Write(config, summary); err != nil {
 			// cannot write to description
 			return
 		}
