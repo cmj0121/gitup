@@ -11,5 +11,7 @@
 </head>
 
 <body>
-  {{ .Post | safe | indent 2 }}
+  <div class='blog'>
+    {{ .Post | safe | indent 4 }}
+  </div>
 </body>
