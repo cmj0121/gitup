@@ -15,6 +15,20 @@
   <div class="blog">
     <!-- prettier-ignore -->
     {{ .Blog.HTML | safe | indent 4 }}
+
+    <div class="d-flex justify-content-between mt-2 text-muted">
+      <!-- prettier-ignore -->
+      <span class="mx-2">
+        <label class="mx-2 fw-bold">Created At: </label>
+        {{- .Blog.CreatedAt.UTC.Format "2006 Jan 02 15:04 UTC" -}}
+      </span>
+      <span
+        class="mx-2 {{ if ( .Blog.UpdatedAt.Equal .Blog.CreatedAt ) }}d-none{{ end }}"
+      >
+        <label class="mx-2 fw-bold">Updated At: </label>
+        {{- .Blog.UpdatedAt.UTC.Format "2006 Jan 02 15:04 UTC" -}}
+      </span>
+    </div>
   </div>
 
   <!-- Footer -->

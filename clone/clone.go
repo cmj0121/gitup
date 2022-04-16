@@ -289,6 +289,10 @@ func (clone *Clone) find_first_commit(repo *git.Repository, blogs blog.Blogs) (e
 				continue
 			}
 
+			if blogs[idx].UpdatedAt.IsZero() {
+				// only setup the updated if not beed set
+				blogs[idx].UpdatedAt = commit.Author.When
+			}
 			blogs[idx].CreatedAt = commit.Author.When
 		}
 		return

@@ -25,6 +25,7 @@ type Blog struct {
 	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
 
 	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	md   []byte // the raw markdown context
 	html []byte // the raw HTML page
