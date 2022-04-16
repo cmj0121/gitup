@@ -134,8 +134,7 @@ func (blog *Blog) Write(config *config.Config) (err error) {
 		writer = file
 	}
 
-	var text []byte
-	if text, err = blog.RenderHTML(); err != nil {
+	if _, err = blog.RenderHTML(); err != nil {
 		log.WithFields(log.Fields{
 			"path":  blog.Output,
 			"error": err,
@@ -149,13 +148,14 @@ func (blog *Blog) Write(config *config.Config) (err error) {
 		return
 	}
 	err = tmpl.Execute(writer, struct {
-		Post  string
+		*Blog
+
 		Style template.CSS
 
 		// the extra meta
 		UTCNow time.Time
 	}{
-		Post:  string(text),
+		Blog:  blog,
 		Style: config.CSS(),
 
 		UTCNow: time.Now().UTC(),
@@ -168,6 +168,12 @@ func (blog *Blog) Write(config *config.Config) (err error) {
 func (blog Blog) UID() (uid string) {
 	// the unique ID is the created at as micro seconds based on UTC+0
 	uid = fmt.Sprintf("%v", blog.CreatedAt.UTC().UnixMicro()/1000000)
+	return
+}
+
+// the rendered HTML
+func (blog Blog) HTML() (html string) {
+	html = string(blog.html)
 	return
 }
 
