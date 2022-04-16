@@ -5,4 +5,4 @@ type Category struct {
 	Blogs
 }
 
-type Summary []Category
+type Summary []*Category

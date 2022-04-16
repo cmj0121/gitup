@@ -248,7 +248,7 @@ func (blogs Blogs) SummaryByYear() (summary Summary) {
 	for _, year := range years {
 		sort.Sort(years_category[year])
 
-		summary = append(summary, Category{
+		summary = append(summary, &Category{
 			Key:   year,
 			Blogs: years_category[year],
 		})
