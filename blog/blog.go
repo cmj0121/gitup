@@ -151,9 +151,14 @@ func (blog *Blog) Write(config *config.Config) (err error) {
 	err = tmpl.Execute(writer, struct {
 		Post  string
 		Style template.CSS
+
+		// the extra meta
+		UTCNow time.Time
 	}{
 		Post:  string(text),
 		Style: config.CSS(),
+
+		UTCNow: time.Now().UTC(),
 	})
 
 	return

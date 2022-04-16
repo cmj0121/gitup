@@ -14,4 +14,9 @@
   <div class='blog'>
     {{ .Post | safe | indent 4 }}
   </div>
+
+  <!-- Footer -->
+  <footer class="fixed-bottom text-center text-muted overflow-hidden">
+    Copyright (C) 2017-{{- .UTCNow.Year }} cmj@cmj.tw
+  </footer>
 </body>
