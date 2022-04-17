@@ -83,12 +83,12 @@ func (gitup *GitUp) prologue() (err error) {
 
 	log.Trace("setup the log sub-system")
 
-	if gitup.Settings != "" {
+	if gitup.CLI.Settings != "" {
 		// load external settings
 		log.WithFields(log.Fields{
-			"settings": gitup.Settings,
+			"settings": gitup.CLI.Settings,
 		}).Debug("load external config")
-		gitup.Config.Load(gitup.Settings)
+		gitup.Config.Load(gitup.CLI.Settings)
 	}
 	return
 }

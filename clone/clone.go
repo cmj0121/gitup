@@ -194,11 +194,7 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		}
 	}
 
-	// render the post-list
-	path := fmt.Sprintf("%v/post-list.htm", clone.Output)
-	path = filepath.Clean(path)
-	err = summary.Write(config, path)
-
+	err = clone.generate_default_pages(config, summary)
 	return
 }
 
@@ -307,6 +303,58 @@ func (clone *Clone) find_first_commit(repo *git.Repository, blogs blog.Blogs) (e
 		}
 		return
 	})
+
+	return
+}
+
+// generate the default pages
+func (clone *Clone) generate_default_pages(config *config.Config, summary blog.Summary) (err error) {
+	sort.Sort(clone.blogs)
+
+	// render the newest post as the index.htm
+	blog := clone.blogs[0].Dup()
+	blog.Output = fmt.Sprintf("%v/index.htm", clone.Output)
+	blog.Output = filepath.Clean(blog.Output)
+	if err = blog.Write(config, summary); err != nil {
+		// cannot write index.htm
+		return
+	}
+
+	// render the post-list
+	path := fmt.Sprintf("%v/post-list.htm", clone.Output)
+	path = filepath.Clean(path)
+	err = summary.Write(config, path)
+
+	if config.Settings.AboutMe != "" {
+		err = clone.generate_default_page(config, summary, config.Settings.AboutMe, "about-me.htm")
+		if err != nil {
+			// cannot render about-me.htm
+			return
+		}
+	}
+	if config.Settings.License != "" {
+		err = clone.generate_default_page(config, summary, config.Settings.License, "license.htm")
+		if err != nil {
+			// cannot render about-me.htm
+			return
+		}
+	}
+	return
+}
+
+func (clone *Clone) generate_default_page(config *config.Config, summary blog.Summary, src, dest string) (err error) {
+	var md_blog *blog.Blog
+
+	md_path := fmt.Sprintf("%v/%v", clone.tempdir, src)
+	md_path = filepath.Clean(md_path)
+	if md_blog, err = clone.process(config, md_path); err != nil {
+		// cannot load about-me.htm
+		return
+	}
+
+	md_blog.Output = fmt.Sprintf("%v/%v", clone.Output, dest)
+	md_blog.Output = filepath.Clean(md_blog.Output)
+	err = md_blog.Write(config, summary)
 
 	return
 }

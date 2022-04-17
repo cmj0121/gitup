@@ -84,6 +84,23 @@ func (blog *Blog) Run(config *config.Config) (err error) {
 	return
 }
 
+func (blog *Blog) Dup() (dup *Blog) {
+	dup = &Blog{
+		Path: blog.Path,
+
+		Output:      blog.Output,
+		Title:       blog.Title,
+		Description: blog.Description,
+
+		CreatedAt: blog.CreatedAt,
+		UpdatedAt: blog.UpdatedAt,
+
+		md:   blog.md,
+		html: blog.html,
+	}
+	return
+}
+
 // render the blog from markdown to HTML page
 func (blog *Blog) Render(config *config.Config) (text []byte, err error) {
 	if _, err = blog.RenderHTML(); err != nil {

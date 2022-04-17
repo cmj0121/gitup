@@ -26,6 +26,7 @@ type Config struct {
 	Author  string `yaml:",omitempty"`
 
 	Render
+	Settings
 }
 
 // load the external config/configs and override the exists settings

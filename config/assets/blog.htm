@@ -13,6 +13,10 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css"
   />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+  />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.min.js"></script>
   <style>
     // prettier-ignore
@@ -21,6 +25,24 @@
 </head>
 
 <body>
+  <nav class="sticky-top navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a href="index.htm" class="navbar-brand mx-auto">{{- .Config.Brand -}}</a>
+
+    <a href="post-list.htm" class="btn">
+      <i class="fa fa-solid fa-bars fa-lg text-white"></i>
+    </a>
+
+    {{ if .Config.AboutMe }}
+    <a href="about-me.htm" class="btn">
+      <i class="fa fa-solid fa-id-card fa-lg text-white"></i>
+    </a>
+    {{ end }} {{ if .Config.License }}
+    <a href="license.htm" class="btn">
+      <i class="fa fa-solid fa-copyright fa-lg text-white"></i>
+    </a>
+    {{ end }}
+  </nav>
+
   <div class="box container-fluid">
     <div class="row flex-nowrap">
       {{ if .Summary }}
@@ -70,8 +92,7 @@
       <div class="blog col py-3">
         <!-- prettier-ignore -->
         <!-- NOTE DO NOT indent the html which <code> may broken the syntax -->
-        {{ .Blog.HTML | safe }}
-
+        {{ .Blog.HTML | safe }} {{ if not .Blog.CreatedAt.IsZero }}
         <div class="d-flex justify-content-between m-2 text-muted">
           <!-- prettier-ignore -->
           <span class="mx-2">
@@ -85,6 +106,7 @@
             {{- .Blog.UpdatedAt.UTC.Format "2006 Jan 02 15:04 UTC" -}}
           </span>
         </div>
+        {{ end }}
       </div>
     </div>
   </div>
