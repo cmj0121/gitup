@@ -36,7 +36,7 @@ body
 
       > li::before
         content : counters(item, '.') ''
-        color   : var(--bs-dark)
+        color   : $fg_color
         list-style-type   : decimal
         counter-increment : item
         margin-right      : 0.5rem
@@ -74,6 +74,9 @@ body
 
       ul
         padding-right : 0.5rem
+
+        > li::before
+          color : var(--bs-dark)
 
     h1
       border-bottom  : 1px solid var(--bs-light)
