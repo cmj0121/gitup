@@ -1,0 +1,26 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "^1.17"
+      - uses: gha-utilities/sass-build@v0.4.7
+        with:
+          source: config/assets/blog.sass
+          destination: config/assets/blog.css
+      - name: test
+        run: |
+          gofmt -d -s .
+          go test -cover -failfast -timeout 2s ./...
