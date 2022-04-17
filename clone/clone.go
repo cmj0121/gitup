@@ -135,10 +135,13 @@ func (clone *Clone) Process(config *config.Config, dir string) (err error) {
 				continue
 			}
 
-			if err = clone.process(config, md_path); err != nil {
+			var md_blog *blog.Blog
+			if md_blog, err = clone.process(config, md_path); err != nil {
 				// parse the blog/markdown fail
 				return
 			}
+
+			clone.blogs = append(clone.blogs, md_blog)
 		}
 	}
 
@@ -217,7 +220,7 @@ func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
 }
 
 // parse the single blog/markdown by path
-func (clone *Clone) process(config *config.Config, path string) (err error) {
+func (clone *Clone) process(config *config.Config, path string) (md_blog *blog.Blog, err error) {
 	log.WithFields(log.Fields{
 		"path": path,
 	}).Trace("process the blog/markdown")
@@ -232,7 +235,6 @@ func (clone *Clone) process(config *config.Config, path string) (err error) {
 	}
 	defer file.Close()
 
-	var md_blog *blog.Blog
 	if md_blog, err = blog.New(file); err != nil {
 		log.WithFields(log.Fields{
 			"path":  path,
@@ -247,7 +249,6 @@ func (clone *Clone) process(config *config.Config, path string) (err error) {
 		return
 	}
 
-	clone.blogs = append(clone.blogs, md_blog)
 	return
 }
 
