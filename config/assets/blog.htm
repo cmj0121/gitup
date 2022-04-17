@@ -61,7 +61,8 @@
 
       <div class="blog col py-3">
         <!-- prettier-ignore -->
-        {{ .Blog.HTML | safe | indent 8 }}
+        <!-- NOTE DO NOT indent the html which <code> may broken the syntax -->
+        {{ .Blog.HTML | safe }}
 
         <div class="d-flex justify-content-between m-2 text-muted">
           <!-- prettier-ignore -->
