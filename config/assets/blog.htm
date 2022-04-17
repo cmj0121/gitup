@@ -5,6 +5,9 @@
   <meta charset="utf-8" />
   <meta name="author" content="{{- .Config.Author -}}" />
   <meta name="generator" content="{{- .Config.Project -}}" />
+  {{ if .Description }}
+  <meta name="description" content="{{- .Blog.Description -}}" />
+  {{ end }}
 
   <link
     rel="stylesheet"

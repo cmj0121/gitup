@@ -27,6 +27,8 @@ type Blog struct {
 	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
 	// the customized title
 	Title string `short:"t" help:"the customized title"`
+	// the description of the blog
+	Description string `kong:"-"`
 
 	// the blogs timestamp
 	CreatedAt time.Time
@@ -128,6 +130,12 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 					}
 				}
 			}
+		}
+
+		RE_DESC := regexp.MustCompile(`<blockquote>\s*(:?<.*?>)*\s*([^<]+?)\s*(:?<.*?>)*\s*</blockquote>`)
+		if RE_DESC.Match(text) {
+			// find the description
+			blog.Description = string(RE_DESC.FindAllSubmatch(text, -1)[0][2])
 		}
 	}
 
