@@ -21,6 +21,10 @@ type Config struct {
 	// the storage folder of the blogs
 	Workdir []string
 
+	// the general project meta
+	Project string `yaml:",omitempty"`
+	Author  string `yaml:",omitempty"`
+
 	Render
 }
 

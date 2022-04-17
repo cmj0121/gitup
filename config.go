@@ -7,6 +7,7 @@ import (
 const (
 	// the project name
 	PROJ_NAME = "gitup"
+	AUTHOR    = "cmj <cmj@cmj.tw>"
 	// the version meta
 	MAJOR = 0
 	MINOR = 1

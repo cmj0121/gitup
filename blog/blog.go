@@ -135,7 +135,7 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 }
 
 // write blog to destination
-func (blog *Blog) Write(config *config.Config, summary Summary) (err error) {
+func (blog *Blog) Write(conf *config.Config, summary Summary) (err error) {
 	var writer io.Writer
 
 	switch blog.Output {
@@ -164,11 +164,12 @@ func (blog *Blog) Write(config *config.Config, summary Summary) (err error) {
 	}
 
 	var tmpl *template.Template
-	if tmpl, err = config.Template(); err != nil {
+	if tmpl, err = conf.Template(); err != nil {
 		// cannot get the template from the config
 		return
 	}
 	err = tmpl.Execute(writer, struct {
+		*config.Config
 		*Blog
 		Summary
 		Style template.CSS
@@ -176,9 +177,10 @@ func (blog *Blog) Write(config *config.Config, summary Summary) (err error) {
 		// the extra meta
 		UTCNow time.Time
 	}{
+		Config:  conf,
 		Blog:    blog,
 		Summary: summary,
-		Style:   config.CSS(),
+		Style:   conf.CSS(),
 
 		UTCNow: time.Now().UTC(),
 	})

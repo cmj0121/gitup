@@ -25,6 +25,9 @@ func New() *GitUp {
 		logger: os.Stderr,
 		// default config
 		Config: &config.Config{
+			Project: Version(),
+			Author:  AUTHOR,
+
 			Render: config.Render{
 				Brand: Version(),
 			},
