@@ -191,6 +191,11 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		}
 	}
 
+	// render the post-list
+	path := fmt.Sprintf("%v/post-list.htm", clone.Output)
+	path = filepath.Clean(path)
+	err = summary.Write(config, path)
+
 	return
 }
 

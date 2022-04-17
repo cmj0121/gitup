@@ -16,6 +16,8 @@ var (
 
 	//go:embed assets/blog.htm
 	TMPL_HTML string
+	//go:embed assets/list.htm
+	TMPL_LIST_HTML string
 	//go:embed assets/blog.css
 	TMPL_STYLE string
 )
@@ -28,6 +30,9 @@ type Render struct {
 	// the template of the HTML page
 	Html string `yaml:",omitempty"`
 
+	// the template of the post-list HTML page
+	ListHtmp string `yaml:",omitempty"`
+
 	// the style of the HTML page
 	Style string `yaml:",omitempty"`
 }
@@ -35,11 +40,28 @@ type Render struct {
 // get the HTML template
 func (render Render) Template() (tmpl *template.Template, err error) {
 	var text string
-	if text, err = render.html(); err != nil {
+	if text, err = render.html(render.Html, TMPL_HTML); err != nil {
 		// cannot get the template text
 		return
 	}
 
+	tmpl, err = render.renderTemplate(text)
+	return
+}
+
+// get the list/HTML template
+func (render Render) ListTemplate() (tmpl *template.Template, err error) {
+	var text string
+	if text, err = render.html(render.ListHtmp, TMPL_LIST_HTML); err != nil {
+		// cannot get the template text
+		return
+	}
+
+	tmpl, err = render.renderTemplate(text)
+	return
+}
+
+func (render Render) renderTemplate(text string) (tmpl *template.Template, err error) {
 	tmpl, err = template.New(KEY_BLOG_TMPL).Funcs(template.FuncMap{
 		"safe": func(text string) template.HTML {
 			return template.HTML(text)
@@ -71,16 +93,16 @@ func (render Render) Template() (tmpl *template.Template, err error) {
 }
 
 // get the html template text
-func (render Render) html() (text string, err error) {
-	switch render.Html {
+func (render Render) html(filepath, default_html string) (text string, err error) {
+	switch filepath {
 	case "":
-		text = TMPL_HTML
+		text = default_html
 	default:
 		var data []byte
 
-		if data, err = ioutil.ReadFile(render.Html); err != nil {
+		if data, err = ioutil.ReadFile(filepath); err != nil {
 			log.WithFields(log.Fields{
-				"path":  render.Html,
+				"path":  filepath,
 				"error": err,
 			}).Warn("cannot read HTMP template")
 		}
