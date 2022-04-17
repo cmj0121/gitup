@@ -50,11 +50,14 @@ body
 
     nav
       width          : 65%
-      padding-top    : 1rem
-      padding-bottom : 0.2rem
+      padding        : 0.5rem
       background     : var(--bs-gray-500)
       margin-bottom  : 1rem
       border-radius  : 0.4rem
+
+      overflow      : hidden
+      text-overflow : ellipsis
+      white-space   : nowrap
 
       > ::before
         content : 'Contents'
@@ -67,6 +70,9 @@ body
 
       a
         color : var(--bs-dark)
+
+      ul
+        padding-right : 0.5rem
 
     h1
       border-bottom  : 1px solid var(--bs-light)
