@@ -124,9 +124,6 @@ func (blog *Blog) RenderHTML() (text []byte, err error) {
 				for _, matched := range RE_TITLE.FindAllSubmatch(text, -1) {
 					if blog.Title = string(matched[1]); blog.Title != "" {
 						// found the first <h1> tag
-						log.WithFields(log.Fields{
-							"title": blog.Title,
-						}).Warn("PWN")
 						break
 					}
 				}
