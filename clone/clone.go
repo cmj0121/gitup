@@ -2,6 +2,7 @@ package clone
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -325,7 +326,10 @@ func (clone *Clone) generate_default_pages(config *config.Config, summary blog.S
 	// render the post-list
 	path := fmt.Sprintf("%v/post-list.htm", clone.Output)
 	path = filepath.Clean(path)
-	err = summary.Write(config, path)
+	if err = summary.Write(config, path); err != nil {
+		// cannot write the summary page
+		return
+	}
 
 	if config.Settings.AboutMe != "" {
 		err = clone.generate_default_page(config, summary, config.Settings.AboutMe, "about-me.htm")
@@ -341,6 +345,8 @@ func (clone *Clone) generate_default_pages(config *config.Config, summary blog.S
 			return
 		}
 	}
+
+	err = clone.generate_favicon(config)
 	return
 }
 
@@ -359,5 +365,31 @@ func (clone *Clone) generate_default_page(config *config.Config, summary blog.Su
 	md_blog.Link = dest
 	err = md_blog.Write(config, summary)
 
+	return
+}
+
+func (clone *Clone) generate_favicon(conf *config.Config) (err error) {
+	var favicon []byte
+
+	switch conf.Favicon {
+	case "":
+		favicon = config.DEFAULT_FAVICON
+	default:
+		src := fmt.Sprintf("%v/%v", clone.tempdir, conf.Favicon)
+		src = filepath.Clean(src)
+
+		if favicon, err = ioutil.ReadFile(src); err != nil {
+			log.WithFields(log.Fields{
+				"path":  src,
+				"error": err,
+			}).Warn("cannot open favicon")
+			return
+		}
+	}
+
+	path := fmt.Sprintf("%v/%v", clone.Output, conf.FaviconLink())
+	path = filepath.Clean(path)
+
+	err = ioutil.WriteFile(path, favicon, 0640)
 	return
 }
