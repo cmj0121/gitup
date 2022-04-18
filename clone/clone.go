@@ -185,6 +185,7 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		}
 
 		blog.Output = dest_path
+		blog.Link = blog.Output[len(clone.Output)+1:]
 	}
 
 	for _, blog := range clone.blogs {
@@ -315,6 +316,7 @@ func (clone *Clone) generate_default_pages(config *config.Config, summary blog.S
 	blog := clone.blogs[0].Dup()
 	blog.Output = fmt.Sprintf("%v/index.htm", clone.Output)
 	blog.Output = filepath.Clean(blog.Output)
+	blog.Link = "index.htm"
 	if err = blog.Write(config, summary); err != nil {
 		// cannot write index.htm
 		return
@@ -354,6 +356,7 @@ func (clone *Clone) generate_default_page(config *config.Config, summary blog.Su
 
 	md_blog.Output = fmt.Sprintf("%v/%v", clone.Output, dest)
 	md_blog.Output = filepath.Clean(md_blog.Output)
+	md_blog.Link = dest
 	err = md_blog.Write(config, summary)
 
 	return

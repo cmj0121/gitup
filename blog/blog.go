@@ -25,6 +25,8 @@ type Blog struct {
 
 	// the output file path
 	Output string `short:"o" type:"path" default:"test.htm" help:"the destinate folder of the generated webpage"`
+	Link   string `kong:"-"`
+
 	// the customized title
 	Title string `short:"t" help:"the customized title"`
 	// the description of the blog
