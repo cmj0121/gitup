@@ -86,10 +86,7 @@ body footer {
     display: none;
   }
 }
-@media screen and (max-device-width: 480px) and (orientation: portrait) {
-  body {
-    font-size: 1.4rem;
-  }
+@media screen and (orientation: portrait) {
   body .navbar > a {
     font-size: 150%;
   }
