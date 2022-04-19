@@ -10,7 +10,7 @@ const (
 	AUTHOR    = "cmj <cmj@cmj.tw>"
 	// the version meta
 	MAJOR = 0
-	MINOR = 1
+	MINOR = 2
 	MACRO = 0
 )
 
