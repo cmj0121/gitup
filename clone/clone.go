@@ -173,12 +173,19 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		return
 	}
 
-	summary := clone.blogs.SummaryByYear()
+	summary := clone.blogs.SummaryByYear(config)
 	for _, blog := range clone.blogs {
 		basename := filepath.Base(filepath.Clean(blog.Path))
 		basename = basename[:len(basename)-len(filepath.Ext(basename))]
 
-		dest_path := fmt.Sprintf("%v/%v-%v.htm", clone.Output, blog.UID(), basename)
+		var dest_path string
+		switch config.IsHidden(blog.Path) {
+		case true:
+			dest_path = fmt.Sprintf("%v/%v.htm", clone.Output, basename)
+		case false:
+			dest_path = fmt.Sprintf("%v/%v-%v.htm", clone.Output, blog.UID(), basename)
+		}
+
 		dest_path = filepath.Clean(dest_path)
 		if dest_path[:len(clone.Output)] != clone.Output {
 			err = fmt.Errorf("invalid desc path: %v", dest_path)
