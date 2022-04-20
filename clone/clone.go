@@ -82,8 +82,42 @@ func (clone *Clone) Run(config *config.Config) (err error) {
 // clone the repo to local temporary folder
 func (clone *Clone) Clone() (repo *git.Repository, err error) {
 	var auth transport.AuthMethod
-	if auth, err = clone.auth_method(); err != nil {
-		// cannot get the auth method
+	switch scheme := clone.Repo.Scheme; scheme {
+	case "http", "https":
+		// generatl HTTP/HTTPS repository
+		auth = &http.BasicAuth{
+			Username: clone.Username,
+			Password: clone.Password,
+		}
+	case "file":
+		path := clone.Repo.Host
+		if path == "" {
+			// change the path to current path
+			if path, err = os.Getwd(); err != nil {
+				// cannot get pwd
+				return
+			}
+		}
+
+		// the local repository, just open and return immediately
+		log.WithFields(log.Fields{
+			"repo": path,
+		}).Info("open local repository")
+
+		if repo, err = git.PlainOpen(path); err != nil {
+			// cannot open repository
+			log.WithFields(log.Fields{
+				"repo":  path,
+				"error": err,
+			}).Warn("cannot open repository")
+		}
+
+		// force reset the settings
+		clone.Purge = false
+		clone.tempdir = path
+		return
+	default:
+		err = fmt.Errorf("not support scheme: %v", scheme)
 		return
 	}
 
@@ -204,23 +238,6 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 	}
 
 	err = clone.generate_default_pages(config, summary)
-	return
-}
-
-// get the auth method from the provided URI
-func (clone *Clone) auth_method() (auth transport.AuthMethod, err error) {
-	switch scheme := clone.Repo.Scheme; scheme {
-	case "http", "https":
-		// generatl HTTP/HTTPS repository
-		auth = &http.BasicAuth{
-			Username: clone.Username,
-			Password: clone.Password,
-		}
-	default:
-		err = fmt.Errorf("not support scheme: %v", scheme)
-		return
-	}
-
 	return
 }
 
