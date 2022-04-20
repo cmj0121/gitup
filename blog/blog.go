@@ -250,11 +250,18 @@ func (blogs Blogs) Swap(i, j int) {
 }
 
 // the summary via the year
-func (blogs Blogs) SummaryByYear() (summary Summary) {
+func (blogs Blogs) SummaryByYear(conf *config.Config) (summary Summary) {
 	years_category := map[string]Blogs{}
 
 	for _, blog := range blogs {
 		year := fmt.Sprintf("%v", blog.CreatedAt.UTC().Year())
+
+		if conf.IsHidden(blog.Path) {
+			log.WithFields(log.Fields{
+				"path": blog.Path,
+			}).Info("the hidden post")
+			continue
+		}
 
 		switch _, ok := years_category[year]; ok {
 		case true:
