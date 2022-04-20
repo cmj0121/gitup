@@ -1,5 +1,5 @@
 SRC := $(shell find . -name '*.go')
-BIN := gitup
+BIN := build/gitup
 
 SASS := $(wildcard config/assets/*.sass)
 CSS  := $(subst .sass,.css,$(SASS))
@@ -34,7 +34,7 @@ help:			# show this message
 
 $(BIN): test
 
-$(BIN): cmd/$(BIN)/main.go $(SRC) $(CSS)
+$(BIN): main.go $(SRC) $(CSS)
 	@go mod tidy
 	go build -o $@ $<
 

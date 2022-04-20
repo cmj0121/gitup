@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/cmj0121/gitup"
+	"github.com/cmj0121/gitup/gitup"
 )
 
 func main() {
