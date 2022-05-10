@@ -1,5 +1,4 @@
 body {
-  min-width: 600px;
   margin: 0;
   font-family: Monaco, Arial, Helvetica, sans-serif;
   color: #fbfbee;
@@ -87,8 +86,11 @@ body footer {
   }
 }
 @media screen and (orientation: portrait) {
-  body .navbar > a {
-    font-size: 150%;
+  body {
+    font-size: 85%;
+  }
+  body .box {
+    padding: 1rem;
   }
 
   footer {
