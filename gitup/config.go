@@ -10,8 +10,8 @@ const (
 	AUTHOR    = "cmj <cmj@cmj.tw>"
 	// the version meta
 	MAJOR = 0
-	MINOR = 2
-	MACRO = 2
+	MINOR = 3
+	MACRO = 0
 )
 
 // the helper function to get the version
