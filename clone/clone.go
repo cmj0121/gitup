@@ -2,7 +2,6 @@ package clone
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -402,7 +401,7 @@ func (clone *Clone) generate_favicon(conf *config.Config) (err error) {
 		src := fmt.Sprintf("%v/%v", clone.tempdir, conf.Favicon)
 		src = filepath.Clean(src)
 
-		if favicon, err = ioutil.ReadFile(src); err != nil {
+		if favicon, err = os.ReadFile(src); err != nil {
 			log.WithFields(log.Fields{
 				"path":  src,
 				"error": err,
@@ -414,6 +413,6 @@ func (clone *Clone) generate_favicon(conf *config.Config) (err error) {
 	path := fmt.Sprintf("%v/%v", clone.Output, conf.FaviconLink())
 	path = filepath.Clean(path)
 
-	err = ioutil.WriteFile(path, favicon, 0640)
+	err = os.WriteFile(path, favicon, 0640)
 	return
 }

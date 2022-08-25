@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	_ "embed"
@@ -100,7 +100,7 @@ func (render Render) html(filepath, default_html string) (text string, err error
 	default:
 		var data []byte
 
-		if data, err = ioutil.ReadFile(filepath); err != nil {
+		if data, err = os.ReadFile(filepath); err != nil {
 			log.WithFields(log.Fields{
 				"path":  filepath,
 				"error": err,
@@ -119,7 +119,7 @@ func (render Render) CSS() (css template.CSS) {
 	case "":
 		css = template.CSS(TMPL_STYLE)
 	default:
-		data, err := ioutil.ReadFile(render.Html)
+		data, err := os.ReadFile(render.Html)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"path":  render.Html,
