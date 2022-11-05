@@ -11,7 +11,7 @@ const (
 	// the version meta
 	MAJOR = 0
 	MINOR = 3
-	MACRO = 2
+	MACRO = 3
 )
 
 // the helper function to get the version
