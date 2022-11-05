@@ -12,6 +12,13 @@ body footer {
   background: #151617;
   opacity: 0.85;
 }
+body h2 {
+  margin-top: 4rem;
+}
+body h3 {
+  padding-left: 1rem;
+  font-size: calc(1.1rem + 0.3vw);
+}
 
 .box {
   padding: 2rem;
@@ -92,11 +99,9 @@ body footer {
   body .box {
     padding: 1rem;
   }
-
   footer {
     padding-bottom: 1rem;
   }
-
   .box {
     margin-bottom: 2rem;
   }
