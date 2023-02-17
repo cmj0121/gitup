@@ -27,6 +27,9 @@ type Settings struct {
 	// the list of the hidden posts
 	// it should be the related path in local repo
 	Hidden []string `yaml:"hidden,omitempty"`
+
+	// disabled the generated HTML file with timestamp as prefix
+	DisabledTimestampPrefix bool `yaml:"disabled_timestamp_prefix,omitempty"`
 }
 
 // return the Favicon link

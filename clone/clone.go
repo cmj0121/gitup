@@ -212,7 +212,7 @@ func (clone *Clone) Generate(config *config.Config, repo *git.Repository) (err e
 		basename = basename[:len(basename)-len(filepath.Ext(basename))]
 
 		var dest_path string
-		switch config.IsHidden(blog.Path) {
+		switch config.IsHidden(blog.Path) || config.DisabledTimestampPrefix {
 		case true:
 			dest_path = fmt.Sprintf("%v/%v.htm", clone.Output, basename)
 		case false:
